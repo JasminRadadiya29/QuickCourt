@@ -1,0 +1,15 @@
+{
+  "watch": ["src"],
+  "ext": "js,jsx,ts,tsx,css,html,json",
+  "ignore": [
+    "src/**/*.test.js",
+    "src/**/*.spec.js",
+    "node_modules/**/*",
+    "build/**/*",
+    "dist/**/*"
+  ],
+  "exec": "vite",
+  "env": {
+    "NODE_ENV": "development"
+  }
+}
