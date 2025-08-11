@@ -34,18 +34,32 @@ declare namespace __next_route_internal_types__ {
     | `/admin/facilities`
     | `/admin/profile`
     | `/admin/users`
+    | `/api/auth/login`
+    | `/api/auth/register`
+    | `/api/auth/register-with-otp`
+    | `/api/auth/send-otp`
+    | `/api/auth/verify-otp`
     | `/api/bookings`
+    | `/api/bookings/active`
+    | `/api/bookings/recent`
     | `/api/courts`
     | `/api/facilities`
+    | `/api/owner/analytics/booking-trends`
+    | `/api/owner/analytics/peak-hours`
+    | `/api/owner/bookings`
+    | `/api/owner/calendar-bookings`
+    | `/api/owner/earnings`
+    | `/api/users`
+    | `/api/users/profile`
     | `/auth/login`
     | `/auth/signup`
-    | `/auth/verify-otp`
     | `/facility-owner-dashboard`
     | `/home-dashboard`
     | `/login-registration`
     | `/owner/bookings`
     | `/owner/courts/add`
     | `/owner/dashboard`
+    | `/owner/facilities`
     | `/owner/facilities/add`
     | `/owner/profile`
     | `/user-profile-my-bookings`
@@ -56,10 +70,13 @@ declare namespace __next_route_internal_types__ {
     | `/venue-details-booking`
     | `/venues-listing-search`
   type DynamicRoutes<T extends string = string> = 
+    | `/api/admin/facilities/${SafeSlug<T>}/approve`
     | `/api/auth/${CatchAllSlug<T>}`
     | `/api/bookings/${SafeSlug<T>}`
+    | `/api/bookings/${SafeSlug<T>}/cancel`
     | `/api/courts/${SafeSlug<T>}`
     | `/api/facilities/${SafeSlug<T>}`
+    | `/api/users/${SafeSlug<T>}`
     | `/owner/facilities/${SafeSlug<T>}/edit`
     | `/user/venues/${SafeSlug<T>}`
 

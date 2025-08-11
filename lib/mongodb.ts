@@ -6,7 +6,7 @@ if (!MONGODB_URI) {
   throw new Error('MONGODB_URI is not defined in environment variables');
 }
 
-interface GlobalMongoose {
+interface GlobalMongoose { 
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
 }

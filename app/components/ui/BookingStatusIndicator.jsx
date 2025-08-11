@@ -1,15 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Icon from '../AppIcon';
+import { useBookings } from 'app/providers';
 
 const BookingStatusIndicator = () => {
-  // Mock booking state - replace with actual booking context
-  const [activeBooking, setActiveBooking] = useState({
-    id: 'BK-2025-001',
-    venueName: 'Downtown Sports Complex',
-    date: '2025-08-15',
-    time: '14:00',
-    status: 'confirmed' // 'pending', 'confirmed', 'cancelled'
-  });
+  // Get active booking from context
+  const { activeBooking } = useBookings();
 
   // Don't render if no active booking
   if (!activeBooking) {

@@ -1,7 +1,7 @@
 import './globals.css';
-// Import legacy Tailwind only if needed; Next already has globals
-// Keeping minimal to avoid double base styles during migration
+import '../src/styles/tailwind.css';
 import type { ReactNode } from 'react';
+import { AppProviders } from './providers';
 
 export const metadata = {
   title: 'QuickCourt',
@@ -11,7 +11,11 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AppProviders>
+          {children}
+        </AppProviders>
+      </body>
     </html>
   );
 }

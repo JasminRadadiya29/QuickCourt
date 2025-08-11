@@ -1,5 +1,4 @@
-import NextAuth from 'next-auth';
-import { authOptions } from '@/lib/auth';
-
-const handler = NextAuth(authOptions as any);
-export { handler as GET, handler as POST };
+// NextAuth disabled in favor of custom JWT auth endpoints.
+export default function handler(req: any, res: any) {
+  return res.status(404).json({ error: 'NextAuth disabled. Use /api/auth/* custom endpoints.' });
+}

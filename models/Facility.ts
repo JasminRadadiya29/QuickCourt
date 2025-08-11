@@ -1,19 +1,21 @@
 import mongoose, { Schema, models, model } from 'mongoose';
 
 const FacilitySchema = new Schema({
-  ownerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  owner: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   name: { type: String, required: true },
+  description: { type: String },
   address: { type: String, required: true },
-  city: String,
-  state: String,
-  zipCode: String,
-  description: String,
-  amenities: [String],
+  locationShort: { type: String },
+  sports: [{ type: String }],
+  amenities: [{ type: String }],
+  photos: [{ type: String }],
+  startingPrice: { type: Number, default: 0 },
+  rating: { type: Number, default: 0 },
+  approved: { type: Boolean, default: false },
   location: {
     type: { type: String, enum: ['Point'], default: 'Point' },
     coordinates: { type: [Number], default: [0, 0] }
-  },
-  images: [String]
+  }
 }, { timestamps: true });
 
 FacilitySchema.index({ location: '2dsphere' });
