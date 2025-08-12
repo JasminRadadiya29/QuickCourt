@@ -1,47 +1,86 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from 'app/components/ui/Button';
 import Icon from 'app/components/AppIcon';
 import Image from 'app/components/AppImage';
+import { apiFetch } from 'lib/apiClient';
 
 const RecentBookings = ({ user }) => {
   const router = useRouter();
+  const [recentBookings, setRecentBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const recentBookings = [
-    {
-      id: "BK-2025-001",
-      venueName: "Downtown Sports Complex",
-      venueImage: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop",
-      sport: "Basketball",
-      court: "Court A",
-      date: "2025-08-15",
-      time: "14:00 - 16:00",
-      status: "confirmed",
-      price: 45
-    },
-    {
-      id: "BK-2025-002",
-      venueName: "Elite Tennis Academy",
-      venueImage: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=400&h=300&fit=crop",
-      sport: "Tennis",
-      court: "Court 3",
-      date: "2025-08-18",
-      time: "10:00 - 11:30",
-      status: "pending",
-      price: 60
-    },
-    {
-      id: "BK-2025-003",
-      venueName: "Community Recreation Center",
-      venueImage: "https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=400&h=300&fit=crop",
-      sport: "Badminton",
-      court: "Court B2",
-      date: "2025-08-20",
-      time: "18:00 - 19:00",
-      status: "confirmed",
-      price: 25
-    }
-  ];
+  useEffect(() => {
+    const fetchRecentBookings = async () => {
+      if (!user || !user._id) return;
+      
+      try {
+        setLoading(true);
+        // Fetch recent bookings for the current user
+        const response = await apiFetch(`/api/bookings?user=${user._id}&limit=3&sort=-createdAt`);
+        
+        if (response && response.data) {
+          // Process each booking to get venue and court details
+          const processedBookings = await Promise.all(response.data.map(async (booking) => {
+            try {
+              // Get court details
+              const courtResponse = await apiFetch(`/api/courts/${booking.court}`);
+              const court = courtResponse || {};
+              
+              // Get facility details
+              const facilityResponse = await apiFetch(`/api/facilities/${booking.venue}`);
+              const facility = facilityResponse || {};
+              
+              // Format time
+              const startTime = booking.startTime ? new Date(booking.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+              const endTime = booking.endTime ? new Date(booking.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+              const timeRange = startTime && endTime ? `${startTime} - ${endTime}` : 'Time not specified';
+              
+              // Use the first photo as the image or null if no photos
+              const venueImage = facility.photos && facility.photos.length > 0
+                ? facility.photos[0]
+                : null;
+              
+              // Extract binary image data if available
+              const imageData = venueImage.data ? venueImage.data : null;
+              const contentType = venueImage.contentType ? venueImage.contentType : null;
+              
+              return {
+                id: booking._id,
+                venueName: facility.name || 'Unknown Venue',
+                venueImage: typeof venueImage === 'string' ? venueImage : null,
+                imageData: imageData,
+                contentType: contentType,
+                sport: court.sport || 'Not specified',
+                court: court.name || 'Unknown Court',
+                date: booking.date || new Date().toISOString().split('T')[0],
+                time: timeRange,
+                status: booking.status || 'pending',
+                price: booking.totalPrice || court.pricePerHour || 0
+              };
+            } catch (error) {
+              console.error('Error processing booking:', error);
+              return null;
+            }
+          }));
+          
+          // Filter out any null values from failed requests
+          setRecentBookings(processedBookings.filter(booking => booking !== null));
+        }
+      } catch (error) {
+        console.error('Error fetching recent bookings:', error);
+        setError('Failed to load recent bookings');
+        
+        // Fallback to empty array if API fails
+        setRecentBookings([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchRecentBookings();
+  }, [user]);
 
   const getStatusConfig = (status) => {
     switch (status) {
@@ -52,19 +91,19 @@ const RecentBookings = ({ user }) => {
           icon: 'CheckCircle',
           label: 'Confirmed'
         };
-      case 'pending':
-        return {
-          color: 'text-warning',
-          bgColor: 'bg-warning/10',
-          icon: 'Clock',
-          label: 'Pending'
-        };
       case 'cancelled':
         return {
           color: 'text-error',
           bgColor: 'bg-error/10',
           icon: 'XCircle',
           label: 'Cancelled'
+        };
+      case 'completed':
+        return {
+          color: 'text-primary',
+          bgColor: 'bg-primary/10',
+          icon: 'Check',
+          label: 'Completed'
         };
       default:
         return {
@@ -120,6 +159,27 @@ const RecentBookings = ({ user }) => {
           </Button>
         </div>
 
+        {loading && (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        )}
+
+        {error && !loading && (
+          <div className="text-center py-10">
+            <p className="text-error">{error}</p>
+          </div>
+        )}
+
+        {!loading && recentBookings.length === 0 && (
+          <div className="text-center py-10">
+            <p className="text-muted-foreground">You don't have any bookings yet.</p>
+            <Button variant="outline" className="mt-4" onClick={() => router.push('/venues-listing-search')}>
+              Find Venues to Book
+            </Button>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {recentBookings?.map((booking) => {
             const statusConfig = getStatusConfig(booking?.status);
@@ -133,6 +193,8 @@ const RecentBookings = ({ user }) => {
                 <div className="relative h-32 overflow-hidden">
                   <Image
                     src={booking?.venueImage}
+                    imageData={booking?.imageData}
+                    contentType={booking?.contentType}
                     alt={booking?.venueName}
                     className="w-full h-full object-cover"
                   />
@@ -172,7 +234,7 @@ const RecentBookings = ({ user }) => {
                   
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-semibold text-foreground">
-                      ${booking?.price}
+                      ₹{booking?.price}
                     </span>
                     
                     <div className="flex space-x-2">

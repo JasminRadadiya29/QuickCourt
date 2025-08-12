@@ -6,6 +6,7 @@ import Icon from 'app/components/AppIcon';
 import Button from 'app/components/ui/Button';
 import { useAuth } from 'app/providers';
 import { apiFetch } from '@/lib/apiClient';
+import DashboardLayout from '../../components/DashboardLayout';
 
 export default function OwnerFacilitiesPage() {
   const [facilities, setFacilities] = useState([]);
@@ -41,8 +42,9 @@ export default function OwnerFacilitiesPage() {
   };
 
   return (
-    <main className="p-6">
-      <div className="flex justify-between items-center mb-6">
+    <DashboardLayout>
+      <main className="p-6">
+        <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-semibold">Manage Facilities & Availability</h1>
         <Button 
           onClick={handleAddFacility}
@@ -73,7 +75,7 @@ export default function OwnerFacilitiesPage() {
               
               <div className="flex items-center text-sm text-muted-foreground mb-4">
                 <Icon name="MapPin" size={16} className="mr-1" />
-                <span>{facility.locationShort || 'Location not specified'}</span>
+                <span>{facility.address}</span>
               </div>
               
               <div className="flex space-x-2">
@@ -97,6 +99,7 @@ export default function OwnerFacilitiesPage() {
           ))}
         </div>
       )}
-    </main>
+      </main>
+    </DashboardLayout>
   );
 }

@@ -1,7 +1,7 @@
 import { connectToDatabase } from '@/lib/mongodb';
 import Booking from '@/models/Booking';
-import User from '@/models/User';
-import { getServerSession } from 'next-auth/next';
+import Facility from '@/models/Facility';
+import { requireAuth, ensureRole } from '@/lib/apiAuth';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -9,77 +9,62 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Get the user session - using custom auth instead of NextAuth
-    // const session = await getServerSession(req, res, authOptions);
+    // Authenticate and authorize the user
+    const auth = requireAuth(req, res);
+    if (!auth) return;
     
-    // For now, we'll use a simple auth check - you may want to implement proper session management
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'Unauthorized' });
+    // Ensure the user is a facility owner or admin
+    if (!ensureRole(auth, ['facility_owner', 'admin'])) {
+      return res.status(403).json({ message: 'Forbidden' });
     }
 
     await connectToDatabase();
     
-    // Extract user ID from token - you'll need to implement proper JWT verification
-    const token = authHeader.split(' ')[1];
-    // const ownerId = verifyToken(token).userId; // Implement this function
-    const ownerId = 'temp-owner-id'; // Temporary placeholder
+    const ownerId = auth.userId;
     
-    const now = new Date();
+    // Get owner's facilities
+    const facilities = await Facility.find({ owner: ownerId });
+    const facilityIds = facilities.map(facility => facility._id);
     
-    // Get upcoming bookings
-    const upcomingBookings = await Booking.find({
-      owner: ownerId,
-      date: { $gte: now },
-    })
-    .sort({ date: 1, startHour: 1 })
-    .limit(5)
-    .populate('user', 'name email avatar')
-    .populate('venue', 'name')
-    .populate('court', 'name');
+    if (facilityIds.length === 0) {
+      return res.status(404).json({ message: 'No facilities found for this owner' });
+    }
     
-    // Get past bookings
-    const pastBookings = await Booking.find({
-      owner: ownerId,
-      date: { $lt: now },
+    // Get all bookings for the owner's facilities
+    const bookings = await Booking.find({
+      venue: { $in: facilityIds },
     })
     .sort({ date: -1, startHour: -1 })
-    .limit(5)
-    .populate('user', 'name email avatar')
+    .populate('user', 'name email')
     .populate('venue', 'name')
     .populate('court', 'name');
     
     // Format bookings data
-    const formatBookings = (bookings) => {
-      return bookings.map(booking => {
-        const startTime = `${booking.startHour}:00`;
-        const endTime = `${booking.endHour}:00`;
-        
-        return {
-          id: booking._id.toString(),
-          user: {
-            name: booking.user.name,
-            email: booking.user.email,
-            avatar: booking.user.avatar || '/assets/images/default-avatar.png',
-            phone: '123-456-7890' // Placeholder as phone might not be in the User model
-          },
-          venue: booking.venue.name,
-          court: booking.court.name,
-          date: booking.date.toISOString().split('T')[0],
-          time: `${startTime} - ${endTime}`,
-          amount: booking.totalPrice,
-          status: booking.status,
-          paymentStatus: booking.status === 'confirmed' ? 'paid' : 'pending'
-        };
-      });
-    };
+    const formattedBookings = bookings.map(booking => ({
+      id: booking._id.toString(),
+      user: {
+        name: booking.user.name,
+        email: booking.user.email
+      },
+      venue: {
+        name: booking.venue.name,
+        id: booking.venue._id
+      },
+      court: {
+        name: booking.court.name,
+        id: booking.court._id
+      },
+      date: booking.date,
+      startHour: booking.startHour,
+      endHour: booking.endHour,
+      totalPrice: booking.totalPrice,
+      status: booking.status,
+      createdAt: booking.createdAt
+    }));
     
-    return res.status(200).json({
-      upcoming: formatBookings(upcomingBookings),
-      past: formatBookings(pastBookings)
-    });
+    return res.status(200).json(formattedBookings);
   } catch (error) {
-    console.error('Error fetching bookings data:', error);
+    console.error('Error fetching owner bookings:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
 }

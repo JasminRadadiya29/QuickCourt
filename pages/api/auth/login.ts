@@ -19,8 +19,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (user.status === 'banned') return res.status(403).json({ error: 'User is banned' });
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
-  // Temporarily bypassing verification check
-  // if (!user.isVerified) return res.status(403).json({ error: 'Account not verified' });
 
   const token = signJwt({ sub: user._id.toString(), role: user.role }, JWT_SECRET, 7 * 24 * 60 * 60);
   

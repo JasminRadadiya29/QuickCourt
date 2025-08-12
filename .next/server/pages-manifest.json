@@ -2,7 +2,5 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/api/auth/send-otp": "pages/api/auth/send-otp.js",
-  "/api/auth/register-with-otp": "pages/api/auth/register-with-otp.js",
-  "/api/auth/login": "pages/api/auth/login.js"
+  "/api/admin/venues/[id]/approve": "pages/api/admin/venues/[id]/approve.js"
 }

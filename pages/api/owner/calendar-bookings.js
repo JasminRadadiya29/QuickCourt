@@ -1,5 +1,6 @@
 import { connectToDatabase } from '@/lib/mongodb';
 import Booking from '@/models/Booking';
+import Facility from '@/models/Facility';
 import { requireAuth } from '@/lib/apiAuth';
 
 export default async function handler(req, res) {
@@ -24,9 +25,13 @@ export default async function handler(req, res) {
     const startDate = new Date(year, month, 1);
     const endDate = new Date(year, month + 1, 0);
     
+    // Get owner's facilities
+    const facilities = await Facility.find({ owner: ownerId });
+    const facilityIds = facilities.map(facility => facility._id);
+    
     // Get all bookings for the current month
     const bookings = await Booking.find({
-      owner: ownerId,
+      venue: { $in: facilityIds },
       date: { $gte: startDate, $lte: endDate }
     })
     .populate('user', 'name')

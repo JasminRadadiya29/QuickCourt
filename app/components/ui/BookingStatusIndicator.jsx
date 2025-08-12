@@ -13,13 +13,6 @@ const BookingStatusIndicator = () => {
 
   const getStatusConfig = (status) => {
     switch (status) {
-      case 'pending':
-        return {
-          icon: 'Clock',
-          color: 'text-warning',
-          bgColor: 'bg-warning/10',
-          label: 'Pending'
-        };
       case 'confirmed':
         return {
           icon: 'CheckCircle',
@@ -33,6 +26,13 @@ const BookingStatusIndicator = () => {
           color: 'text-error',
           bgColor: 'bg-error/10',
           label: 'Cancelled'
+        };
+      case 'completed':
+        return {
+          icon: 'Check',
+          color: 'text-primary',
+          bgColor: 'bg-primary/10',
+          label: 'Completed'
         };
       default:
         return {

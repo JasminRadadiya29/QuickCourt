@@ -120,6 +120,9 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
     setUser(null);
     setIsAuthenticated(false);
+    
+    // Redirect to home-dashboard page after logout
+    window.location.href = '/home-dashboard';
   };
 
   const updateUserProfile = async (profileData) => {

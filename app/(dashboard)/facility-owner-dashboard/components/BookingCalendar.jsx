@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { apiFetch } from '@/lib/apiClient';
 import Icon from 'app/components/AppIcon';
 import Button from 'app/components/ui/Button';
 
@@ -13,15 +13,15 @@ const BookingCalendar = () => {
     const fetchBookingsData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('/api/owner/calendar-bookings');
-        setBookingsData(response.data);
+        const data = await apiFetch('/api/owner/calendar-bookings');
+        setBookingsData(data);
       } catch (error) {
         console.error('Failed to fetch calendar bookings:', error);
         // Fallback data in case API fails
         setBookingsData({
     '2025-08-11': [
       { time: '09:00', court: 'Court A', user: 'John Doe', status: 'confirmed' },
-      { time: '14:00', court: 'Court B', user: 'Jane Smith', status: 'pending' }
+      { time: '14:00', court: 'Court B', user: 'Jane Smith', status: 'confirmed' }
     ],
     '2025-08-12': [
       { time: '10:00', court: 'Court A', user: 'Mike Johnson', status: 'confirmed' },
@@ -29,10 +29,10 @@ const BookingCalendar = () => {
     ],
     '2025-08-15': [
       { time: '14:00', court: 'Court A', user: 'Michael Rodriguez', status: 'confirmed' },
-      { time: '18:00', court: 'Court B', user: 'Emma Davis', status: 'pending' }
+      { time: '18:00', court: 'Court B', user: 'Emma Davis', status: 'confirmed' }
     ],
     '2025-08-16': [
-      { time: '10:00', court: 'Court B', user: 'Sarah Johnson', status: 'pending' }
+      { time: '10:00', court: 'Court B', user: 'Sarah Johnson', status: 'confirmed' }
     ],
     '2025-08-17': [
       { time: '18:00', court: 'Court C', user: 'David Chen', status: 'confirmed' }
@@ -176,7 +176,8 @@ const BookingCalendar = () => {
                         <div
                           key={idx}
                           className={`w-1.5 h-1.5 rounded-full ${
-                            booking?.status === 'confirmed' ? 'bg-success' : 'bg-warning'
+                            booking?.status === 'confirmed' ? 'bg-success' : 
+                            booking?.status === 'cancelled' ? 'bg-error' : 'bg-primary'
                           }`}
                         />
                       ))}
@@ -209,7 +210,8 @@ const BookingCalendar = () => {
                   </div>
                 </div>
                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  booking?.status === 'confirmed' ?'bg-success/10 text-success' :'bg-warning/10 text-warning'
+                  booking?.status === 'confirmed' ? 'bg-success/10 text-success' :
+                  booking?.status === 'cancelled' ? 'bg-error/10 text-error' : 'bg-primary/10 text-primary'
                 }`}>
                   {booking?.status}
                 </span>

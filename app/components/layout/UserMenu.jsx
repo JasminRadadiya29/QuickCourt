@@ -24,9 +24,9 @@ const UserMenu = ({ user }) => {
   const router = useRouter();
 
   const handleLogout = () => {
-    logout();
     setIsOpen(false);
-    router.push('/home-dashboard');
+    logout();
+    // Redirect is now handled in the logout function
   };
 
   const menuItems = [
@@ -34,11 +34,6 @@ const UserMenu = ({ user }) => {
       label: 'My Profile',
       path: '/user-profile-my-bookings',
       icon: 'User'
-    },
-    {
-      label: 'My Bookings',
-      path: '/user-profile-my-bookings',
-      icon: 'Calendar'
     },
     {
       label: 'Settings',
@@ -49,21 +44,13 @@ const UserMenu = ({ user }) => {
 
   // Add facility owner specific items
   if (user?.role === 'facility_owner') {
-    menuItems?.splice(2, 0, {
+    menuItems?.splice(1, 0, {
       label: 'Owner Dashboard',
       path: '/facility-owner-dashboard',
       icon: 'BarChart3'
     });
   }
 
-  // Add admin specific items
-  if (user?.role === 'admin') {
-    menuItems?.splice(2, 0, {
-      label: 'Admin Panel',
-      path: '/admin',
-      icon: 'Shield'
-    });
-  }
 
   return (
     <div className="relative" ref={menuRef}>
@@ -77,6 +64,8 @@ const UserMenu = ({ user }) => {
             <Image 
               src={user?.avatar} 
               alt={user?.name}
+              imageData={user?.avatar?.data}
+              contentType={user?.avatar?.contentType}
               className="w-full h-full object-cover"
             />
           ) : (

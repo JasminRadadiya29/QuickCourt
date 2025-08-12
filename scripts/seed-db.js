@@ -32,7 +32,6 @@ const seedUsers = async () => {
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ['user', 'facility_owner', 'admin'], default: 'user' },
     avatar: { type: String },
-    isVerified: { type: Boolean, default: true },
     status: { type: String, enum: ['active', 'banned'], default: 'active' }
   }, { timestamps: true });
 
@@ -49,7 +48,6 @@ const seedUsers = async () => {
         email: 'john@example.com',
         passwordHash: 'hashedpassword123',
         role: 'user',
-        isVerified: true,
         status: 'active'
       },
       {
@@ -57,7 +55,6 @@ const seedUsers = async () => {
         email: 'jane@example.com',
         passwordHash: 'hashedpassword456',
         role: 'facility_owner',
-        isVerified: true,
         status: 'active'
       },
       {
@@ -65,7 +62,6 @@ const seedUsers = async () => {
         email: 'admin@example.com',
         passwordHash: 'hashedpassword789',
         role: 'admin',
-        isVerified: true,
         status: 'active'
       }
     ];
@@ -89,7 +85,6 @@ const seedFacilities = async (users) => {
     sports: [{ type: String }],
     amenities: [{ type: String }],
     photos: [{ type: String }],
-    startingPrice: { type: Number },
     rating: { type: Number, default: 0 },
     approved: { type: Boolean, default: false },
     location: {
@@ -124,7 +119,6 @@ const seedFacilities = async (users) => {
         sports: ['Tennis', 'Basketball', 'Volleyball'],
         amenities: ['Parking', 'Changing Rooms', 'Cafe'],
         photos: ['/assets/images/facility1.jpg'],
-        startingPrice: 50,
         rating: 4.5,
         approved: true,
         location: {
@@ -140,7 +134,6 @@ const seedFacilities = async (users) => {
         sports: ['Tennis', 'Badminton'],
         amenities: ['Parking', 'Pro Shop', 'Lounge'],
         photos: ['/assets/images/facility2.jpg'],
-        startingPrice: 40,
         rating: 4.2,
         approved: true,
         location: {
@@ -226,14 +219,13 @@ const seedCourts = async (facilities) => {
 const seedBookings = async (users, facilities, courts) => {
   const BookingSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     venue: { type: mongoose.Schema.Types.ObjectId, ref: 'Facility', required: true },
     court: { type: mongoose.Schema.Types.ObjectId, ref: 'Court', required: true },
     date: { type: Date, required: true },
     startHour: { type: Number, required: true },
     endHour: { type: Number, required: true },
     totalPrice: { type: Number, required: true },
-    status: { type: String, enum: ['pending', 'confirmed', 'cancelled'], default: 'pending' }
+    status: { type: String, enum: ['confirmed', 'cancelled', 'completed'], default: 'confirmed' }
   }, { timestamps: true });
 
   BookingSchema.index({ court: 1, date: 1, startHour: 1, endHour: 1 });
@@ -271,7 +263,6 @@ const seedBookings = async (users, facilities, courts) => {
 
       bookings.push({
         user: regularUser._id,
-        owner: owner._id,
         venue: facility._id,
         court: court._id,
         date: date,
@@ -293,14 +284,13 @@ const seedBookings = async (users, facilities, courts) => {
 
       bookings.push({
         user: regularUser._id,
-        owner: owner._id,
         venue: facility._id,
         court: court._id,
         date: date,
         startHour: 14 + (i % 6),
         endHour: 15 + (i % 6),
         totalPrice: court.pricePerHour,
-        status: i % 3 === 0 ? 'pending' : 'confirmed'
+        status: 'confirmed'
       });
     }
 

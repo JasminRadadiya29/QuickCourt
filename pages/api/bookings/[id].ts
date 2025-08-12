@@ -8,10 +8,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { id } = req.query as { id: string };
 
   if (req.method === 'GET') {
-    const auth = requireAuth(req, res);
-    if (!auth) return;
-    const booking = await Booking.findById(id);
-    return res.status(200).json(booking);
+    try {
+      const booking = await Booking.findById(id);
+      if (!booking) {
+        return res.status(404).json({ error: 'Booking not found' });
+      }
+      return res.status(200).json(booking);
+    } catch (error) {
+      console.error(`Error fetching booking with id ${id}:`, error);
+      return res.status(500).json({ error: 'Failed to fetch booking' });
+    }
   }
 
   if (req.method === 'PUT') {

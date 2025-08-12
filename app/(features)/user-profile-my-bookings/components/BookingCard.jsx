@@ -32,13 +32,7 @@ const BookingCard = ({ booking, onCancel, onModify, onRebook, onReview }) => {
           icon: 'XCircle',
           label: 'Cancelled'
         };
-      case 'pending':
-        return {
-          color: 'text-warning',
-          bgColor: 'bg-warning/10',
-          icon: 'Clock',
-          label: 'Pending'
-        };
+
       default:
         return {
           color: 'text-muted-foreground',

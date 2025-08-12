@@ -8,8 +8,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { id } = req.query as { id: string };
 
   if (req.method === 'GET') {
-    const facility = await Facility.findById(id);
-    return res.status(200).json(facility);
+    try {
+      const facility = await Facility.findById(id);
+      if (!facility) {
+        return res.status(404).json({ error: 'Facility not found' });
+      }
+      return res.status(200).json(facility);
+    } catch (error) {
+      console.error(`Error fetching facility with id ${id}:`, error);
+      return res.status(500).json({ error: 'Failed to fetch facility' });
+    }
   }
 
   if (req.method === 'PUT') {

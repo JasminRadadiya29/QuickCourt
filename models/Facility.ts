@@ -5,12 +5,13 @@ const FacilitySchema = new Schema({
   name: { type: String, required: true },
   description: { type: String },
   address: { type: String, required: true },
-  locationShort: { type: String },
   sports: [{ type: String }],
   amenities: [{ type: String }],
-  photos: [{ type: String }],
-  startingPrice: { type: Number, default: 0 },
-  rating: { type: Number, default: 0 },
+  photos: [{ 
+    data: { type: Buffer, required: true },
+    contentType: { type: String, required: true }
+  }],
+  rating: { type: Number, default: 0, comment: 'This field is calculated from reviews' }, // Calculated from reviews
   approved: { type: Boolean, default: false },
   location: {
     type: { type: String, enum: ['Point'], default: 'Point' },

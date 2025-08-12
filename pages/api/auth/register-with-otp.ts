@@ -12,22 +12,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const { name, email, password, role, otp } = req.body;
 
-    if (!name || !email || !password || !otp) {
-      return res.status(400).json({ error: 'name, email, password, and otp are required' });
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'name, email, and password are required' });
     }
+    
+    // OTP is temporarily not required
+    // Will be required again when OTP verification is re-implemented
 
-    // Clean up expired OTPs first
+    // TEMPORARILY BYPASSING OTP VERIFICATION
+    // Will be implemented later
+    console.log('OTP verification bypassed for development');
+    
+    // Clean up expired OTPs (keeping this for when verification is re-enabled)
     cleanupExpiredOTPs();
-
-    // Verify OTP first
-    const otpData = getOTPData(email);
-    if (!otpData) {
-      return res.status(400).json({ error: 'No OTP found for this email or OTP has expired' });
-    }
-
-    if (otpData.otp !== otp) {
-      return res.status(400).json({ error: 'Invalid OTP' });
-    }
 
     // Connect to database
     await connectToDatabase();
@@ -41,13 +38,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create user with verified status
+    // Create user
     const user = await User.create({ 
       name, 
       email, 
       passwordHash, 
-      role: role || 'user', 
-      isVerified: true,
+      role: role || 'user',
       emailVerifiedAt: new Date()
     });
 

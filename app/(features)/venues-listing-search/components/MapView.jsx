@@ -46,7 +46,7 @@ const MapView = ({ venues, onVenueSelect, selectedVenue }) => {
                     {venue?.name}
                   </h4>
                   <p className="text-xs text-muted-foreground mb-2">
-                    {venue?.location}
+                    {typeof venue?.location === 'object' ? venue?.address : venue?.location}
                   </p>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">

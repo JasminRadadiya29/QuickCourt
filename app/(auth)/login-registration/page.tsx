@@ -92,13 +92,7 @@ export default function LoginRegistration() {
                 </>
               )}
             </div>
-            <div className="flex items-center justify-center space-x-6 text-xs text-muted-foreground">
-              <a href="#" className="hover:text-foreground transition-smooth">Privacy Policy</a>
-              <span>•</span>
-              <a href="#" className="hover:text-foreground transition-smooth">Terms of Service</a>
-              <span>•</span>
-              <a href="#" className="hover:text-foreground transition-smooth">Help Center</a>
-            </div>
+
           </div>
         </div>
       </main>

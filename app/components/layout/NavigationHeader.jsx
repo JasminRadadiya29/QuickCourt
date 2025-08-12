@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Icon from '../AppIcon';
 import UserMenu from './UserMenu';
 import RoleBasedNavigation from './RoleBasedNavigation';
@@ -10,12 +10,28 @@ import { useAuth } from '../../providers';
 const NavigationHeader = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   
   // Get authentication state from context
   const { user, isAuthenticated } = useAuth();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleLogoClick = (e) => {
+    e.preventDefault();
+    if (isAuthenticated) {
+      if (user?.role === 'facility_owner') {
+        router.push('/facility-owner-dashboard');
+      } else if (user?.role === 'admin') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/home-dashboard');
+      }
+    } else {
+      router.push('/');
+    }
   };
 
   return (
@@ -25,7 +41,8 @@ const NavigationHeader = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link 
-              href={isAuthenticated && user?.role === 'facility_owner' ? '/facility-owner-dashboard' : '/home-dashboard'} 
+              href="/"
+              onClick={handleLogoClick}
               className="flex items-center space-x-2"
             >
               <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
@@ -88,7 +105,7 @@ const NavigationHeader = () => {
             <RoleBasedNavigation 
               user={user} 
               isAuthenticated={isAuthenticated}
-              activePath={location?.pathname}
+              activePath={pathname}
               isMobile={true}
               onNavigate={() => setIsMobileMenuOpen(false)}
             />

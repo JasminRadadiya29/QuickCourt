@@ -4,10 +4,12 @@ import Button from 'app/components/ui/Button';
 import Input from 'app/components/ui/Input';
 import { Checkbox } from 'app/components/ui/Checkbox';
 import { apiFetch } from '@/lib/apiClient';
+import { useAuth } from 'app/providers';
 
 
 const LoginForm = ({ onForgotPassword }) => {
   const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -57,17 +59,17 @@ const LoginForm = ({ onForgotPassword }) => {
     
     setIsLoading(true);
     try {
-      const result = await apiFetch('/api/auth/login', { method: 'POST', body: {
-        email: formData.email,
-        password: formData.password,
-      }, auth: false });
-      // store token and user
-      localStorage.setItem('token', result.token);
-      localStorage.setItem('user', JSON.stringify(result.user));
-      // Navigate based on role
-      if (result.user.role === 'facility_owner') router.push('/facility-owner-dashboard');
-      else if (result.user.role === 'admin') router.push('/');
-      else router.push('/home-dashboard');
+      // Use the login function from AuthContext instead of direct API call
+      const result = await login(formData.email, formData.password);
+      
+      if (result.success) {
+        // Navigate based on role
+        if (result.user.role === 'facility_owner') router.push('/facility-owner-dashboard');
+        else if (result.user.role === 'admin') router.push('/admin/dashboard');
+        else router.push('/home-dashboard');
+      } else {
+        setGeneralError(result.error || 'Login failed');
+      }
     } catch (e) {
       setGeneralError(e?.error || 'Login failed');
     } finally {
@@ -129,32 +131,7 @@ const LoginForm = ({ onForgotPassword }) => {
       >
         Sign In
       </Button>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border"></div>
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-background text-muted-foreground">Or continue with</span>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          iconName="Mail"
-          iconPosition="left"
-        >
-          Google
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          iconName="Facebook"
-          iconPosition="left"
-        >
-          Facebook
-        </Button>
-      </div>
+
     </form>
   );
 };

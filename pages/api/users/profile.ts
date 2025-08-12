@@ -31,9 +31,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         avatar: user.avatar || '',
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
-        isVerified: user.isVerified,
         bookingCount: bookingCount
       };
+      
+      // If avatar exists and has binary data, format it properly
+      if (user.avatar && user.avatar.data) {
+        userData.avatar = {
+          data: user.avatar.data.toString('base64'),
+          contentType: user.avatar.contentType
+        };
+      }
       
       return res.status(200).json(userData);
     } catch (error) {
@@ -53,7 +60,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const updateData: any = {};
       if (name) updateData.name = name;
       if (phone) updateData.phone = phone;
-      if (avatar) updateData.avatar = avatar;
+      
+      // Process avatar if it exists
+      if (avatar) {
+        // Check if avatar is already in the correct format
+        if (avatar.data && avatar.contentType) {
+          updateData.avatar = avatar;
+        }
+        // If it's a base64 string, convert it to Buffer
+        else if (typeof avatar === 'string' && avatar.includes('base64')) {
+          const matches = avatar.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+          if (matches && matches.length === 3) {
+            const contentType = matches[1];
+            const buffer = Buffer.from(matches[2], 'base64');
+            updateData.avatar = { data: buffer, contentType };
+          }
+        }
+      }
       
       const updatedUser = await User.findByIdAndUpdate(
         auth.userId,

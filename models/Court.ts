@@ -8,7 +8,8 @@ const CourtSchema = new Schema({
   openHour: { type: String, default: '06:00' },
   closeHour: { type: String, default: '22:00' },
   isAvailable: { type: Boolean, default: true },
-  features: [{ type: String }]
+  features: [{ type: String }],
+  approved: { type: Boolean, default: false }
 }, { timestamps: true });
 
 export default models.Court || model('Court', CourtSchema);

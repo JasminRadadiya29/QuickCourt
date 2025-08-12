@@ -47,21 +47,6 @@ const HeroBanner = ({ user }) => {
               </Button>
             )}
           </div>
-          
-          <div className="mt-8 flex items-center justify-center lg:justify-start space-x-6 text-sm text-white/80">
-            <div className="flex items-center space-x-2">
-              <Icon name="MapPin" size={16} />
-              <span>500+ Venues</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Icon name="Users" size={16} />
-              <span>10,000+ Users</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Icon name="Star" size={16} />
-              <span>4.8 Rating</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>

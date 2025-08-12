@@ -30,10 +30,16 @@ declare namespace __next_route_internal_types__ {
 
   type StaticRoutes = 
     | `/`
+    | `/admin/bookings`
+    | `/admin/courts`
     | `/admin/dashboard`
     | `/admin/facilities`
     | `/admin/profile`
     | `/admin/users`
+    | `/api/admin`
+    | `/api/admin/bookings`
+    | `/api/admin/users`
+    | `/api/admin/venues/pending`
     | `/api/auth/login`
     | `/api/auth/register`
     | `/api/auth/register-with-otp`
@@ -41,14 +47,18 @@ declare namespace __next_route_internal_types__ {
     | `/api/auth/verify-otp`
     | `/api/bookings`
     | `/api/bookings/active`
+    | `/api/bookings/availability`
+    | `/api/bookings/my`
     | `/api/bookings/recent`
     | `/api/courts`
     | `/api/facilities`
+    | `/api/notifications`
     | `/api/owner/analytics/booking-trends`
     | `/api/owner/analytics/peak-hours`
     | `/api/owner/bookings`
     | `/api/owner/calendar-bookings`
     | `/api/owner/earnings`
+    | `/api/reviews`
     | `/api/users`
     | `/api/users/profile`
     | `/auth/login`
@@ -57,6 +67,7 @@ declare namespace __next_route_internal_types__ {
     | `/home-dashboard`
     | `/login-registration`
     | `/owner/bookings`
+    | `/owner/courts`
     | `/owner/courts/add`
     | `/owner/dashboard`
     | `/owner/facilities`
@@ -70,13 +81,21 @@ declare namespace __next_route_internal_types__ {
     | `/venue-details-booking`
     | `/venues-listing-search`
   type DynamicRoutes<T extends string = string> = 
+    | `/api/admin/bookings/${SafeSlug<T>}/status`
     | `/api/admin/facilities/${SafeSlug<T>}/approve`
+    | `/api/admin/users/${SafeSlug<T>}/ban`
+    | `/api/admin/venues/${SafeSlug<T>}`
+    | `/api/admin/venues/${SafeSlug<T>}/approve`
     | `/api/auth/${CatchAllSlug<T>}`
     | `/api/bookings/${SafeSlug<T>}`
     | `/api/bookings/${SafeSlug<T>}/cancel`
     | `/api/courts/${SafeSlug<T>}`
     | `/api/facilities/${SafeSlug<T>}`
+    | `/api/notifications/${SafeSlug<T>}`
+    | `/api/notifications/${SafeSlug<T>}/dismiss`
+    | `/api/reviews/${SafeSlug<T>}`
     | `/api/users/${SafeSlug<T>}`
+    | `/owner/courts/${SafeSlug<T>}/edit`
     | `/owner/facilities/${SafeSlug<T>}/edit`
     | `/user/venues/${SafeSlug<T>}`
 

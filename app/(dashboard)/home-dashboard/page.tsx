@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import NavigationHeader from '../../components/layout/NavigationHeader';
+import DashboardLayout from '../components/DashboardLayout';
 import HeroBanner from './components/HeroBanner';
 import FeaturedVenues from './components/FeaturedVenues';
 import PopularSports from './components/PopularSports';
@@ -29,9 +29,8 @@ export default function HomeDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <NavigationHeader />
-      <main className="pt-16">
+    <DashboardLayout>
+      <main>
         {/* Hero Banner */}
         <HeroBanner user={user} />
         {/* Featured Venues */}
@@ -62,6 +61,6 @@ export default function HomeDashboard() {
       </main>
       {/* Notification Toast */}
       <NotificationToast />
-    </div>
+    </DashboardLayout>
   );
 }

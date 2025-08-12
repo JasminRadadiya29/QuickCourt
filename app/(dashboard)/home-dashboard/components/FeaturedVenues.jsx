@@ -1,59 +1,85 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'app/components/AppImage';
 import Button from 'app/components/ui/Button';
 import Icon from 'app/components/AppIcon';
+import { apiFetch } from 'lib/apiClient';
 
 const FeaturedVenues = () => {
   const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [featuredVenues, setFeaturedVenues] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const featuredVenues = [
-    {
-      id: 1,
-      name: "Downtown Sports Complex",
-      image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop",
-      rating: 4.8,
-      reviewCount: 124,
-      sports: ["Basketball", "Tennis", "Badminton"],
-      priceRange: "₹400-₹900/hour",
-      location: "Downtown District",
-      featured: true
-    },
-    {
-      id: 2,
-      name: "Elite Tennis Academy",
-      image: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=800&h=600&fit=crop",
-      rating: 4.9,
-      reviewCount: 89,
-      sports: ["Tennis", "Squash"],
-      priceRange: "₹500-₹1,200/hour",
-      location: "Uptown Area",
-      featured: true
-    },
-    {
-      id: 3,
-      name: "Community Recreation Center",
-      image: "https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=800&h=600&fit=crop",
-      rating: 4.6,
-      reviewCount: 156,
-      sports: ["Basketball", "Volleyball", "Badminton"],
-      priceRange: "₹350-₹800/hour",
-      location: "Westside",
-      featured: true
-    },
-    {
-      id: 4,
-      name: "Premier Fitness Courts",
-      image: "https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=800&h=600&fit=crop",
-      rating: 4.7,
-      reviewCount: 92,
-      sports: ["Tennis", "Basketball"],
-      priceRange: "₹600-₹1,000/hour",
-      location: "Business District",
-      featured: true
-    }
-  ];
+  useEffect(() => {
+    const fetchFeaturedVenues = async () => {
+      try {
+        setLoading(true);
+        // Fetch facilities with approved status
+        const response = await apiFetch('/api/facilities?approved=true&limit=4');
+        
+        if (response && response.data) {
+          // For each facility, fetch its courts to get price ranges
+          const venuesWithCourts = await Promise.all(response.data.map(async (facility) => {
+            try {
+              const courtsResponse = await apiFetch(`/api/courts?venue=${facility._id}`);
+              const courts = courtsResponse?.data || [];
+              
+              // Calculate price range
+              let minPrice = Infinity;
+              let maxPrice = 0;
+              
+              courts.forEach(court => {
+                if (court.pricePerHour < minPrice) minPrice = court.pricePerHour;
+                if (court.pricePerHour > maxPrice) maxPrice = court.pricePerHour;
+              });
+              
+              const priceRange = courts.length > 0 
+                ? `₹${minPrice}-₹${maxPrice}/hour`
+                : 'Price not available';
+              
+              // Use the first photo as the image or null if no photos
+              const image = facility.photos && facility.photos.length > 0
+                ? facility.photos[0]
+                : null;
+              
+              // Extract binary image data if available
+              const imageData = image.data ? image.data : null;
+              const contentType = image.contentType ? image.contentType : null;
+              
+              return {
+                id: facility._id,
+                name: facility.name,
+                image: typeof image === 'string' ? image : null,
+                imageData: imageData,
+                contentType: contentType,
+                rating: facility.rating || 4.5,
+                reviewCount: 0, // This would need to be calculated from reviews
+                sports: facility.sports || [],
+                priceRange: priceRange,
+                location: facility.address,
+                featured: true
+              };
+            } catch (error) {
+              console.error('Error fetching courts for facility:', error);
+              return null;
+            }
+          }));
+          
+          // Filter out any null values from failed requests
+          setFeaturedVenues(venuesWithCourts.filter(venue => venue !== null));
+        }
+      } catch (error) {
+        console.error('Error fetching featured venues:', error);
+        setError('Failed to load featured venues');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchFeaturedVenues();
+  }, []);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % Math.max(1, featuredVenues?.length - 2));
@@ -84,25 +110,42 @@ const FeaturedVenues = () => {
             </p>
           </div>
           
-          <div className="hidden lg:flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={prevSlide}
-              disabled={currentSlide === 0}
-            >
-              <Icon name="ChevronLeft" size={20} />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={nextSlide}
-              disabled={currentSlide >= featuredVenues?.length - 3}
-            >
-              <Icon name="ChevronRight" size={20} />
+          {!loading && featuredVenues.length > 3 && (
+            <div className="hidden lg:flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={prevSlide}
+                disabled={currentSlide === 0}
+              >
+                <Icon name="ChevronLeft" size={20} />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={nextSlide}
+                disabled={currentSlide >= featuredVenues?.length - 3}
+              >
+                <Icon name="ChevronRight" size={20} />
+              </Button>
+            </div>
+          )}
+        </div>
+        
+        {loading && (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        )}
+        
+        {error && (
+          <div className="text-center py-10">
+            <p className="text-error">{error}</p>
+            <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+              Try Again
             </Button>
           </div>
-        </div>
+        )}
 
         {/* Desktop Carousel */}
         <div className="hidden lg:block overflow-hidden">
@@ -119,6 +162,8 @@ const FeaturedVenues = () => {
                   <div className="relative h-48 overflow-hidden">
                     <Image
                       src={venue?.image}
+                      imageData={venue?.imageData}
+                      contentType={venue?.contentType}
                       alt={venue?.name}
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     />
@@ -135,7 +180,7 @@ const FeaturedVenues = () => {
                     
                     <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-3">
                       <Icon name="MapPin" size={14} />
-                      <span>{venue?.location}</span>
+                      <span>{typeof venue?.location === 'object' ? venue?.address : venue?.location}</span>
                     </div>
                     
                     <div className="flex flex-wrap gap-1 mb-3">
@@ -181,6 +226,8 @@ const FeaturedVenues = () => {
                   <div className="relative h-40 overflow-hidden">
                     <Image
                       src={venue?.image}
+                      imageData={venue?.imageData}
+                      contentType={venue?.contentType}
                       alt={venue?.name}
                       className="w-full h-full object-cover"
                     />
@@ -197,7 +244,7 @@ const FeaturedVenues = () => {
                     
                     <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-3">
                       <Icon name="MapPin" size={14} />
-                      <span>{venue?.location}</span>
+                      <span>{typeof venue?.location === 'object' ? venue?.address : venue?.location}</span>
                     </div>
                     
                     <div className="flex flex-wrap gap-1 mb-3">

@@ -20,8 +20,8 @@ const RegisterForm = () => {
 
   const roleOptions = [
     { value: 'user', label: 'Sports Enthusiast', description: 'Book courts and play sports' },
-    { value: 'facility_owner', label: 'Facility Owner', description: 'Manage venues and bookings' },
-    { value: 'admin', label: 'Admin', description: 'Platform administration' }
+    { value: 'facility_owner', label: 'Facility Owner', description: 'Manage venues and bookings' }
+    // Admin role is hidden from frontend but still available in backend
   ];
 
   const handleInputChange = (e) => {
@@ -83,15 +83,24 @@ const RegisterForm = () => {
     
     setIsSendingOTP(true);
     try {
-      await apiFetch('/api/auth/send-otp', {
-        method: 'POST',
-        body: { email: formData.email },
-        auth: false
+      // Skip OTP verification and directly register the user
+      await apiFetch('/api/auth/register-with-otp', { 
+        method: 'POST', 
+        body: {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role
+          // OTP field is not required as we've bypassed verification in the backend
+        }, 
+        auth: false 
       });
       
-      setShowOTPVerification(true);
+      // Registration successful, redirect to login
+      alert('Registration successful! Please login with your credentials.');
+      window.location.href = '/login-registration';
     } catch (error) {
-      setErrors({ general: error?.error || 'Failed to send OTP' });
+      setErrors({ general: error?.error || 'Registration failed' });
     } finally {
       setIsSendingOTP(false);
     }
@@ -228,37 +237,12 @@ const RegisterForm = () => {
         size="lg"
         fullWidth
         loading={isSendingOTP}
-        iconName="Mail"
+        iconName="UserPlus"
         iconPosition="left"
       >
-        Send Verification Code
+        Register Now
       </Button>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border"></div>
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-background text-muted-foreground">Or continue with</span>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          iconName="Mail"
-          iconPosition="left"
-        >
-          Google
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          iconName="Facebook"
-          iconPosition="left"
-        >
-          Facebook
-        </Button>
-      </div>
+
     </form>
   );
 };

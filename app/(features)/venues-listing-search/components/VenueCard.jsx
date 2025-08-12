@@ -100,7 +100,7 @@ const VenueCard = ({ venue }) => {
 
           <div className="flex items-center text-muted-foreground mb-3">
             <Icon name="MapPin" size={16} className="mr-1" />
-            <span className="text-sm line-clamp-1">{venue?.location}</span>
+            <span className="text-sm line-clamp-1">{typeof venue?.location === 'object' ? venue?.address : venue?.location}</span>
           </div>
 
           <div className="flex items-center gap-2 mb-3">

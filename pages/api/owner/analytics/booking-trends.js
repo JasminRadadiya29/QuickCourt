@@ -1,6 +1,14 @@
-import { connectToDatabase } from '@/lib/mongodb';
-import Booking from '@/models/Booking';
-import { requireAuth } from '@/lib/apiAuth';
+import { connectToDatabase } from '../../../../lib/mongodb';
+import Booking from '../../../../models/Booking';
+import Facility from '../../../../models/Facility';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../auth/[...nextauth]';
+
+// Helper function to get all facilities owned by a user
+async function getOwnerFacilities(ownerId) {
+  const facilities = await Facility.find({ owner: ownerId });
+  return facilities.map(facility => facility._id);
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -8,13 +16,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Authenticate and authorize the user
-    const auth = requireAuth(req, res, ['facility_owner', 'admin']);
-    if (!auth) return;
+    // Get the user session
+    const session = await getServerSession(req, res, authOptions);
+    
+    if (!session || session.user.role !== 'owner') {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
 
     await connectToDatabase();
     
-    const ownerId = auth.userId;
+    const ownerId = session.user.id;
     const now = new Date();
     
     // Weekly data (last 7 days)
@@ -30,9 +41,9 @@ export default async function handler(req, res) {
       nextDate.setDate(nextDate.getDate() + 1);
       
       const bookings = await Booking.find({
-        owner: ownerId,
+        venue: { $in: await getOwnerFacilities(ownerId) },
         date: { $gte: date, $lt: nextDate },
-        status: { $in: ['confirmed', 'pending'] }
+        status: 'confirmed'
       });
       
       const revenue = bookings.reduce((sum, booking) => sum + booking.totalPrice, 0);
@@ -56,9 +67,9 @@ export default async function handler(req, res) {
       endDate.setDate(endDate.getDate() + 7);
       
       const bookings = await Booking.find({
-        owner: ownerId,
+        venue: { $in: await getOwnerFacilities(ownerId) },
         date: { $gte: startDate, $lt: endDate },
-        status: { $in: ['confirmed', 'pending'] }
+        status: 'confirmed'
       });
       
       const revenue = bookings.reduce((sum, booking) => sum + booking.totalPrice, 0);
@@ -83,9 +94,9 @@ export default async function handler(req, res) {
       const endDate = new Date(year, month + 1, 0);
       
       const bookings = await Booking.find({
-        owner: ownerId,
+        venue: { $in: await getOwnerFacilities(ownerId) },
         date: { $gte: startDate, $lte: endDate },
-        status: { $in: ['confirmed', 'pending'] }
+        status: 'confirmed'
       });
       
       const revenue = bookings.reduce((sum, booking) => sum + booking.totalPrice, 0);

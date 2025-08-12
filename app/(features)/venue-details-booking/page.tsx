@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useMemo, useState } from 'react';
-import NavigationHeader from 'app/components/layout/NavigationHeader';
+import DashboardLayout from 'app/(dashboard)/components/DashboardLayout';
 import VenueImageGallery from './components/VenueImageGallery';
 import VenueInformation from './components/VenueInformation';
 import ReviewsSection from './components/ReviewsSection';
@@ -24,22 +24,23 @@ export default function VenueDetailsBooking() {
       setVenue(v);
       if (v) {
         const courtsRes = await apiFetch(`/api/courts?venue=${v._id}`, { auth: false });
-        if (!cancelled) setCourts(courtsRes || []);
+        if (!cancelled) setCourts(courtsRes?.data || []);
       }
     }
     load();
     return () => { cancelled = true; };
   }, []);
 
-  const handleBookingSubmit = async ({ court, date, timeSlot, total }) => {
+  const handleBookingSubmit = async ({ court, date, timeSlot, playerCount, specialRequests, total }) => {
     const user = getCurrentUser();
     if (!user) {
-      alert('Please sign in');
+      alert('Please sign in to complete your booking');
       return;
     }
     setLoading(true);
     try {
-      await apiFetch('/api/bookings', {
+      console.log('Submitting booking:', { court, date, timeSlot });
+      const response = await apiFetch('/api/bookings', {
         method: 'POST',
         body: {
           user: user.id,
@@ -47,37 +48,45 @@ export default function VenueDetailsBooking() {
           date,
           startHour: timeSlot.time,
           endHour: `${parseInt(timeSlot.time.split(':')[0], 10) + 1}:00`,
+          playerCount,
+          specialRequests,
           totalPrice: Math.round(total)
         }
       });
+      console.log('Booking successful:', response);
+      alert('Booking successful! Redirecting to your bookings page.');
       window.location.href = '/user/bookings';
     } catch (e) {
-      alert(e?.error || 'Booking failed');
+      console.error('Booking error:', e);
+      alert(e?.error || 'Booking failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
   return (
-    <div className="min-h-screen bg-background">
-      <NavigationHeader />
-      <main className="pt-16">
+    <DashboardLayout>
+      <main>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Example render when venue loaded */}
           {venue && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-6">
                 <VenueImageGallery images={venue.photos || []} />
-                <VenueInformation venue={venue} />
-                <ReviewsSection reviews={[]} />
+                <VenueInformation venue={venue} courts={courts} />
+                <ReviewsSection 
+                  reviews={venue.reviews || []} 
+                  overallRating={venue.rating || 0}
+                  ratingDistribution={venue.ratingDistribution || {}}
+                  facilityId={venue._id}
+                />
               </div>
               <div className="lg:col-span-1">
-                <CourtBookingWidget courts={courts} onBookingSubmit={handleBookingSubmit} />
-                <Button className="mt-4" loading={loading}>Book Now</Button>
+                <CourtBookingWidget courts={courts} onBookingSubmit={handleBookingSubmit} loading={loading} />
               </div>
             </div>
           )}
         </div>
       </main>
-    </div>
+    </DashboardLayout>
   );
 }

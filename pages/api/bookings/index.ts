@@ -21,23 +21,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await connectToDatabase();
 
   if (req.method === 'GET') {
-    const auth = requireAuth(req, res);
-    if (!auth) return;
-    const { userId, ownerId, status } = req.query as any;
+    // For public endpoints like recent bookings, we don't require auth
+    const { user, venue, court, status, limit = '100', sort = '-createdAt' } = req.query as any;
     const filter: any = {};
-    if (userId) filter.user = userId;
-    if (ownerId) filter.owner = ownerId;
+    
+    if (user) filter.user = user;
+    if (venue) filter.venue = venue;
+    if (court) filter.court = court;
     if (status) filter.status = status;
     
     try {
-      const bookings = await Booking.find(filter)
-        .sort({ createdAt: -1 })
-        .limit(100)
-        .populate('court')
-        .populate('venue');
+      const limitNum = parseInt(limit as string, 10) || 100;
+      const sortOption = sort || '-createdAt';
       
-      console.log(`Retrieved ${bookings.length} bookings for userId: ${userId}`);
-      return res.status(200).json(bookings);
+      const bookings = await Booking.find(filter)
+        .sort(sortOption)
+        .limit(Math.min(limitNum, 100));
+      
+      console.log(`Retrieved ${bookings.length} bookings with filter:`, filter);
+      return res.status(200).json({ data: bookings, total: bookings.length });
     } catch (error) {
       console.error('Error fetching bookings:', error);
       return res.status(500).json({ error: 'Failed to fetch bookings' });
@@ -65,13 +67,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!withinHours) return res.status(400).json({ error: 'Outside operating hours' });
 
     // Overlap check
-    const sameDayBookings = await Booking.find({ court, date, status: { $in: ['pending', 'confirmed'] } });
+    const sameDayBookings = await Booking.find({ court, date, status: { $in: ['confirmed'] } });
     const hasOverlap = sameDayBookings.some(b => timesOverlap(startHour, endHour, b.startHour, b.endHour));
     if (hasOverlap) return res.status(409).json({ error: 'Time slot not available' });
 
     const newBooking = await Booking.create({
       user,
-      owner: venueDoc.owner,
       venue: venueId,
       court,
       date,

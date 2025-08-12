@@ -14,24 +14,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === 'GET') {
-    const { approved, owner, q, page = '1', limit = '20' } = req.query as any;
+    const { approved, owner, q, page = '1', limit = '20', sort = '-createdAt' } = req.query as any;
     const filter: any = {};
     if (approved !== undefined) filter.approved = approved === 'true';
     if (owner) filter.owner = owner;
     if (q) filter.name = { $regex: q, $options: 'i' };
+    
     const pageNum = parseInt(page, 10) || 1;
     const pageSize = Math.min(parseInt(limit, 10) || 20, 100);
-    const facilities = await Facility.find(filter)
-      .sort({ createdAt: -1 })
-      .skip((pageNum - 1) * pageSize)
-      .limit(pageSize);
-    const total = await Facility.countDocuments(filter);
-    return res.status(200).json({ data: facilities, page: pageNum, total });
+    const sortOption = sort || '-createdAt';
+    
+    try {
+      const facilities = await Facility.find(filter)
+        .sort(sortOption)
+        .skip((pageNum - 1) * pageSize)
+        .limit(pageSize);
+      
+      const total = await Facility.countDocuments(filter);
+      console.log(`Retrieved ${facilities.length} facilities with filter:`, filter);
+      return res.status(200).json({ data: facilities, page: pageNum, total });
+    } catch (error) {
+      console.error('Error fetching facilities:', error);
+      return res.status(500).json({ error: 'Failed to fetch facilities' });
+    }
   }
 
   if (req.method === 'POST') {
     console.log('Received POST request to /api/facilities');
-    console.log('Request body:', req.body);
     
     const auth = requireAuth(req, res);
     if (!auth) {
@@ -46,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(403).json({ error: 'Forbidden' });
     }
     
-    const { owner, name, address } = req.body || {};
+    const { owner, name, address, photos, ...otherFields } = req.body || {};
     console.log('Extracted fields:', { owner, name, address });
     
     if (!owner || !name || !address) {
@@ -61,7 +70,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     try {
       console.log('Creating facility in database...');
-      const facility = await Facility.create({ ...req.body, approved: false });
+      
+      // Process photos if they exist
+      let processedPhotos = [];
+      if (photos && Array.isArray(photos)) {
+        processedPhotos = photos.map(photo => {
+          // Check if photo is already in the correct format
+          if (photo.data && photo.contentType) {
+            return photo;
+          }
+          
+          // If it's a base64 string, convert it to Buffer
+          if (typeof photo === 'string' && photo.includes('base64')) {
+            const matches = photo.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+            if (matches && matches.length === 3) {
+              const contentType = matches[1];
+              const buffer = Buffer.from(matches[2], 'base64');
+              return { data: buffer, contentType };
+            }
+          }
+          
+          return null;
+        }).filter(photo => photo !== null);
+      }
+      
+      const facility = await Facility.create({ 
+        ...otherFields,
+        owner,
+        name,
+        address,
+        photos: processedPhotos,
+        approved: false 
+      });
+      
       console.log('Facility created successfully:', facility);
       return res.status(201).json(facility);
     } catch (error) {

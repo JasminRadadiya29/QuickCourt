@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import NavigationHeader from 'app/components/layout/NavigationHeader';
+import DashboardLayout from 'app/(dashboard)/components/DashboardLayout';
 import ProfileTab from './components/ProfileTab';
 import BookingsTab from './components/BookingsTab';
 import Icon from 'app/components/AppIcon';
@@ -23,9 +23,8 @@ export default function UserProfileMyBookings() {
   ];
   const ActiveComponent = tabs?.find(tab => tab?.id === activeTab)?.component;
   return (
-    <div className="min-h-screen bg-background">
-      <NavigationHeader />
-      <main className="pt-16">
+    <DashboardLayout>
+      <main>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Page Header */}
           <div className="mb-8">
@@ -115,6 +114,6 @@ export default function UserProfileMyBookings() {
           </div>
         </div>
       </footer>
-    </div>
+    </DashboardLayout>
   );
 }

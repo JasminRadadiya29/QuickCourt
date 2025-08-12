@@ -22,20 +22,21 @@ const CourtBookingWidget = ({ courts, onBookingSubmit }) => {
   // Generate time slots for the selected date
   const generateTimeSlots = () => {
     const slots = [];
-    const startHour = 6; // 6 AM
-    const endHour = 22; // 10 PM
+    // Use selected court's operating hours if available, otherwise use default hours
+    const startHour = selectedCourt?.openHour ? parseInt(selectedCourt.openHour.split(':')[0]) : 6; // Default 6 AM
+    const endHour = selectedCourt?.closeHour ? parseInt(selectedCourt.closeHour.split(':')[0]) : 22; // Default 10 PM
     
     for (let hour = startHour; hour < endHour; hour++) {
-      const timeString = `${hour?.toString()?.padStart(2, '0')}:00`;
+      const timeString = `${hour.toString().padStart(2, '0')}:00`;
       const displayTime = hour < 12 ? `${hour}:00 AM` : 
                          hour === 12 ? '12:00 PM' : 
                          `${hour - 12}:00 PM`;
       
       // Availability will be fetched from API
       const isAvailable = true; // Default to available until API integration
-      const price = selectedCourt ? selectedCourt?.hourlyRate : 0;
+      const price = selectedCourt ? selectedCourt.pricePerHour || 0 : 0;
       
-      slots?.push({
+      slots.push({
         time: timeString,
         displayTime,
         isAvailable,
@@ -46,7 +47,14 @@ const CourtBookingWidget = ({ courts, onBookingSubmit }) => {
     return slots;
   };
 
-  const timeSlots = generateTimeSlots();
+  // Regenerate time slots when selected court changes
+  const [timeSlots, setTimeSlots] = useState([]);
+  
+  useEffect(() => {
+    if (selectedCourt) {
+      setTimeSlots(generateTimeSlots());
+    }
+  }, [selectedCourt]);
 
   const calculateTotal = () => {
     if (!selectedTimeSlot || !selectedCourt) return 0;
@@ -63,8 +71,7 @@ const CourtBookingWidget = ({ courts, onBookingSubmit }) => {
 
     setIsLoading(true);
     
-    // Simulate booking process
-    setTimeout(() => {
+    try {
       const bookingData = {
         court: selectedCourt,
         date: selectedDate,
@@ -74,9 +81,13 @@ const CourtBookingWidget = ({ courts, onBookingSubmit }) => {
         total: calculateTotal()
       };
       
-      onBookingSubmit(bookingData);
+      await onBookingSubmit(bookingData);
+    } catch (error) {
+      console.error('Booking error:', error);
+      alert('There was an error processing your booking. Please try again.');
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   const isDateDisabled = (date) => {
@@ -121,12 +132,12 @@ const CourtBookingWidget = ({ courts, onBookingSubmit }) => {
                     <div className="flex items-center space-x-2 mt-1">
                       <Icon name="Clock" size={14} className="text-muted-foreground" />
                       <span className="text-xs text-muted-foreground">
-                        {court?.operatingHours}
+                        {court?.openHour && court?.closeHour ? `${court.openHour} - ${court.closeHour}` : 'Hours not available'}
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-foreground">{formatINR(court?.hourlyRate)}/hr</p>
+                    <p className="font-semibold text-foreground">{formatINR(court?.pricePerHour || 0)}/hr</p>
                     <div className={`inline-flex items-center space-x-1 text-xs px-2 py-1 rounded-full ${
                       court?.isAvailable 
                         ? 'bg-success/10 text-success' :'bg-error/10 text-error'

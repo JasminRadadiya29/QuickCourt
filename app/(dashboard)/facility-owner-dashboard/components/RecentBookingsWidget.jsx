@@ -94,7 +94,7 @@ const RecentBookingsWidget = () => {
                       {booking?.status}
                     </span>
                     <span className="text-sm font-semibold text-foreground">
-                      ${booking?.amount?.toFixed(2)}
+                      ₹{booking?.amount}
                     </span>
                   </div>
                 </div>

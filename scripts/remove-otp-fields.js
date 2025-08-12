@@ -39,9 +39,6 @@ const removeOtpFields = async () => {
         $unset: {
           otp: "",
           otpExpires: ""
-        },
-        $set: {
-          isVerified: true // Set all users as verified
         }
       }
     );

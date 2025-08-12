@@ -1,7 +1,7 @@
 import React from 'react';
 import Icon from 'app/components/AppIcon';
 
-const VenueInformation = ({ venue }) => {
+const VenueInformation = ({ venue, courts }) => {
   const sportIcons = {
     'Basketball': 'Circle',
     'Tennis': 'Circle',
@@ -28,7 +28,7 @@ const VenueInformation = ({ venue }) => {
           </div>
           <div className="flex items-center space-x-1">
             <Icon name="MapPin" size={16} />
-            <span>{venue?.location}</span>
+            <span>{typeof venue?.location === 'object' ? venue?.address : venue?.location}</span>
           </div>
         </div>
       </div>
@@ -101,12 +101,20 @@ const VenueInformation = ({ venue }) => {
         <h2 className="text-lg font-semibold text-foreground mb-3">Operating Hours</h2>
         <div className="bg-card border border-border rounded-lg p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {venue?.operatingHours?.map((schedule, index) => (
-              <div key={index} className="flex justify-between items-center">
-                <span className="text-sm font-medium text-foreground">{schedule?.day}</span>
-                <span className="text-sm text-muted-foreground">{schedule?.hours}</span>
+            {courts && courts.length > 0 ? (
+              courts.map((court, index) => (
+                <div key={index} className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-foreground">{court.name}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {court.openHour && court.closeHour ? `${court.openHour} - ${court.closeHour}` : 'Hours not available'}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="flex justify-between items-center col-span-2">
+                <span className="text-sm text-muted-foreground">No operating hours available</span>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

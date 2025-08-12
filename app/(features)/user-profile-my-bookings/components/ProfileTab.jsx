@@ -54,7 +54,10 @@ const ProfileTab = () => {
             phone: userData.phone || '',
             dateJoined: formatDate(userData.createdAt || new Date()),
             totalBookings: userData.bookingCount || 0,
-            profilePhoto: userData.avatar || 'https://testingbot.com/free-online-tools/random-avatar/300'
+            profilePhoto: userData.avatar?.data ? {
+              data: userData.avatar.data,
+              contentType: userData.avatar.contentType
+            } : userData.avatar || 'https://testingbot.com/free-online-tools/random-avatar/300'
           };
           
           setProfileData(newProfileData);
@@ -73,7 +76,10 @@ const ProfileTab = () => {
               phone: '',
               dateJoined: '',
               totalBookings: 0,
-              profilePhoto: localUser.avatar || 'https://testingbot.com/free-online-tools/random-avatar/300'
+              profilePhoto: localUser.avatar?.data ? {
+                data: localUser.avatar.data,
+                contentType: localUser.avatar.contentType
+              } : localUser.avatar || 'https://testingbot.com/free-online-tools/random-avatar/300'
             };
             
             setProfileData(fallbackData);
@@ -195,22 +201,64 @@ const ProfileTab = () => {
               <div className="text-center">
                 <div className="relative inline-block">
                   <div className="w-32 h-32 rounded-full overflow-hidden bg-muted mx-auto">
-                    <img
-                      src={formData.profilePhoto || 'https://testingbot.com/free-online-tools/random-avatar/300'}
-                      alt={formData.name}
-                      className="w-full h-full object-cover"
-                    />
+                    {typeof formData.profilePhoto === 'object' && formData.profilePhoto?.data ? (
+                      <img
+                        src={formData.profilePhoto.previewUrl || `data:${formData.profilePhoto.contentType};base64,${formData.profilePhoto.data}`}
+                        alt={formData.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={formData.profilePhoto || 'https://testingbot.com/free-online-tools/random-avatar/300'}
+                        alt={formData.name}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                   </div>
                   {isEditing && (
                     <button
                       type="button"
                       className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-md hover:bg-primary/90 transition-colors"
                       onClick={() => {
-                        // In a real app, this would open a file picker
-                        const newPhotoUrl = prompt('Enter URL for profile photo:', formData.profilePhoto);
-                        if (newPhotoUrl) {
-                          setFormData({ ...formData, profilePhoto: newPhotoUrl });
-                        }
+                        // Create a hidden file input element
+                        const fileInput = document.createElement('input');
+                        fileInput.type = 'file';
+                        fileInput.accept = 'image/*';
+                        fileInput.style.display = 'none';
+                        
+                        // Handle file selection
+                        fileInput.onchange = async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          
+                          try {
+                            // Create URL for preview
+                            const previewUrl = URL.createObjectURL(file);
+                            
+                            // Convert file to base64 for storage
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                              const base64Data = event.target.result;
+                              setFormData({
+                                ...formData,
+                                profilePhoto: {
+                                  data: base64Data.split(',')[1],
+                                  contentType: file.type,
+                                  previewUrl // Store preview URL for local display
+                                }
+                              });
+                            };
+                            reader.readAsDataURL(file);
+                          } catch (err) {
+                            console.error('Error processing image:', err);
+                            alert('Failed to process image. Please try again.');
+                          }
+                        };
+                        
+                        // Trigger file selection dialog
+                        document.body.appendChild(fileInput);
+                        fileInput.click();
+                        document.body.removeChild(fileInput);
                       }}
                     >
                       <Icon name="Camera" size={16} />

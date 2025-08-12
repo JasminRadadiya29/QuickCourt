@@ -8,21 +8,21 @@ const RoleBasedNavigation = ({ user, isAuthenticated, activePath, isMobile = fal
       label: 'Home',
       path: '/home-dashboard',
       icon: 'Home',
-      roles: ['user', 'admin'],
+      roles: ['user'],
       requiresAuth: false
     },
     {
       label: 'Find Venues',
       path: '/venues-listing-search',
       icon: 'MapPin',
-      roles: ['user', 'admin'],
+      roles: ['user'],
       requiresAuth: false
     },
     {
       label: 'My Account',
       path: '/user-profile-my-bookings',
       icon: 'User',
-      roles: ['user', 'facility_owner', 'admin'],
+      roles: ['user', 'facility_owner'],
       requiresAuth: true
     },
     {
@@ -30,6 +30,34 @@ const RoleBasedNavigation = ({ user, isAuthenticated, activePath, isMobile = fal
       path: '/facility-owner-dashboard',
       icon: 'BarChart3',
       roles: ['facility_owner'],
+      requiresAuth: true
+    },
+    {
+      label: 'Admin Dashboard',
+      path: '/admin/dashboard',
+      icon: 'Shield',
+      roles: ['admin'],
+      requiresAuth: true
+    },
+    {
+      label: 'Manage Courts',
+      path: '/admin/courts',
+      icon: 'Court',
+      roles: ['admin'],
+      requiresAuth: true
+    },
+    {
+      label: 'Manage Facilities',
+      path: '/admin/facilities',
+      icon: 'Building',
+      roles: ['admin'],
+      requiresAuth: true
+    },
+    {
+      label: 'Manage Bookings',
+      path: '/admin/bookings',
+      icon: 'Calendar',
+      roles: ['admin'],
       requiresAuth: true
     }
   ];

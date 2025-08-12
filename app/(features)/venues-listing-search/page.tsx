@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
-import NavigationHeader from '../../components/layout/NavigationHeader';
+import DashboardLayout from 'app/(dashboard)/components/DashboardLayout';
 import SearchBar from './components/SearchBar';
 import FilterSidebar from './components/FilterSidebar';
 import FilterChips from './components/FilterChips';
@@ -41,12 +41,12 @@ const VenuesListingSearch = () => {
       if (!cancelled) setAllVenues((res?.data || []).map((v) => ({
         id: v._id,
         name: v.name,
-        image: (v.photos && v.photos[0]) || '/assets/images/no_image.png',
+        image: (v.photos && v.photos[0]) || null,
         rating: v.rating || 0,
         reviewCount: Math.round((v.rating || 0) * 20),
-        location: v.locationShort || '',
+        location: v.address || '',
         sports: v.sports || [],
-        priceRange: { min: v.startingPrice || 0, max: (v.startingPrice || 0) + 200 },
+        priceRange: { min: 0, max: 200 },
         openHours: '06:00 - 22:00'
       })));
     }
@@ -122,9 +122,8 @@ const VenuesListingSearch = () => {
   const hasActiveFilters = Object.values(filters)?.some(filterArray => filterArray?.length > 0);
 
   return (
-    <div className="min-h-screen bg-background">
-      <NavigationHeader />
-      <main className="pt-20 pb-12">
+    <DashboardLayout>
+      <main className="pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Search Section */}
           <div className="mb-6">
@@ -216,7 +215,7 @@ const VenuesListingSearch = () => {
         onClose={() => setIsMobileFilterOpen(false)}
         isMobile={true}
       />
-    </div>
+    </DashboardLayout>
   );
 };
 

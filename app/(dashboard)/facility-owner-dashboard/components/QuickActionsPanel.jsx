@@ -18,7 +18,7 @@ const QuickActionsPanel = () => {
       description: 'Edit court details and pricing',
       icon: 'Settings',
       color: 'primary',
-      path: '/owner/courts/add',
+      path: '/owner/courts',
       badge: null
     },
     {
@@ -87,7 +87,7 @@ const QuickActionsPanel = () => {
         </div>
       </div>
       {/* Recent Activity */}
-      <div className="bg-card border border-border rounded-lg p-6 shadow-soft">
+      {/* <div className="bg-card border border-border rounded-lg p-6 shadow-soft">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-foreground">Recent Activity</h3>
           <Button variant="ghost" size="sm" iconName="MoreHorizontal" />
@@ -127,7 +127,7 @@ const QuickActionsPanel = () => {
             <span className="text-xs text-muted-foreground">3h ago</span>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

@@ -16,7 +16,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const update: any = {};
     if (status) update.status = status;
     if (name) update.name = name;
-    if (avatar) update.avatar = avatar;
+    
+    // Process avatar if it exists
+    if (avatar) {
+      // Check if avatar is already in the correct format
+      if (avatar.data && avatar.contentType) {
+        update.avatar = avatar;
+      }
+      // If it's a base64 string, convert it to Buffer
+      else if (typeof avatar === 'string' && avatar.includes('base64')) {
+        const matches = avatar.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (matches && matches.length === 3) {
+          const contentType = matches[1];
+          const buffer = Buffer.from(matches[2], 'base64');
+          update.avatar = { data: buffer, contentType };
+        }
+      }
+    }
+    
     const user = await User.findByIdAndUpdate(id, update, { new: true }).select('-passwordHash');
     return res.status(200).json(user);
   }

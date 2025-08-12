@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from 'app/providers';
 import { apiFetch } from '@/lib/apiClient';
 import Icon from 'app/components/AppIcon';
+import DashboardLayout from 'app/(dashboard)/components/DashboardLayout';
 
 export default function OwnerCourtAddPage() {
   const router = useRouter();
@@ -114,7 +115,7 @@ export default function OwnerCourtAddPage() {
       
       setSuccess(true);
       setTimeout(() => {
-        router.push('/owner/facilities');
+        router.push('/owner/courts');
       }, 2000);
     } catch (err) {
       console.error('Error creating court:', err);
@@ -139,7 +140,8 @@ export default function OwnerCourtAddPage() {
   ];
 
   return (
-    <main className="p-6 max-w-4xl mx-auto">
+    <DashboardLayout>
+      <main className="p-6 max-w-4xl mx-auto">
       <div className="flex items-center mb-6">
         <button 
           onClick={() => router.back()} 
@@ -372,5 +374,6 @@ export default function OwnerCourtAddPage() {
         </form>
       )}
     </main>
+  </DashboardLayout>
   );
 }

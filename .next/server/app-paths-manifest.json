@@ -1,4 +1,1 @@
-{
-  "/(auth)/login-registration/page": "app/(auth)/login-registration/page.js",
-  "/(dashboard)/home-dashboard/page": "app/(dashboard)/home-dashboard/page.js"
-}
+{}

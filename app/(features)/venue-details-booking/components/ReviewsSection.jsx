@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import Icon from 'app/components/AppIcon';
 import Image from 'app/components/AppImage';
 import Button from 'app/components/ui/Button';
+import WriteReviewModal from './WriteReviewModal';
 
-const ReviewsSection = ({ reviews, overallRating, ratingDistribution, onWriteReview }) => {
+const ReviewsSection = ({ reviews = [], overallRating = 0, ratingDistribution = {}, facilityId }) => {
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [isWriteReviewModalOpen, setIsWriteReviewModalOpen] = useState(false);
   const displayedReviews = showAllReviews ? reviews : reviews?.slice(0, 3);
 
   const formatDate = (dateString) => {
@@ -38,7 +40,7 @@ const ReviewsSection = ({ reviews, overallRating, ratingDistribution, onWriteRev
           variant="outline"
           iconName="Edit3"
           iconPosition="left"
-          onClick={onWriteReview}
+          onClick={() => setIsWriteReviewModalOpen(true)}
         >
           Write Review
         </Button>
@@ -92,6 +94,8 @@ const ReviewsSection = ({ reviews, overallRating, ratingDistribution, onWriteRev
                   <Image
                     src={review?.userAvatar}
                     alt={review?.userName}
+                    imageData={review?.userAvatar?.data}
+                    contentType={review?.userAvatar?.contentType}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -128,6 +132,8 @@ const ReviewsSection = ({ reviews, overallRating, ratingDistribution, onWriteRev
                         <Image
                           src={image}
                           alt={`Review image ${index + 1}`}
+                          imageData={image?.data}
+                          contentType={image?.contentType}
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -161,6 +167,12 @@ const ReviewsSection = ({ reviews, overallRating, ratingDistribution, onWriteRev
           </Button>
         </div>
       )}
+      {/* Write Review Modal */}
+      <WriteReviewModal 
+        isOpen={isWriteReviewModalOpen} 
+        onClose={() => setIsWriteReviewModalOpen(false)} 
+        facilityId={facilityId} 
+      />
     </div>
   );
 };

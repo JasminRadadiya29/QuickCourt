@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const passwordHash = await bcrypt.hash(password, 10);
 
-  const user = await User.create({ name, email, passwordHash, role: role || 'user', avatar, isVerified: true });
+  const user = await User.create({ name, email, passwordHash, role: role || 'user', avatar });
 
   return res.status(201).json({ id: user._id, email: user.email });
 }
